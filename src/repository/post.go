@@ -64,6 +64,11 @@ func (r *PostRepositoryImpl) Update(ctx context.Context, baju *models.Baju) (*mo
 		return nil, err
 	}
 
+	// Mengatur stok menjadi 0 jika stok pada baju yang diterima adalah 0
+	if baju.Stok == 0 {
+		baju.Stok = 0
+	}
+
 	if err := r.DB.WithContext(ctx).Model(&existingBaju).Updates(baju).Error; err != nil {
 		return nil, err
 	}
@@ -87,10 +92,14 @@ func (r *PostRepositoryImpl) KurangStock(ctx context.Context, id uint, jumlah in
 	if err := r.DB.WithContext(ctx).First(&baju, id).Error; err != nil {
 		return nil, err
 	}
+	
+	// Pastikan stok tidak menjadi negatif
 	if baju.Stok < jumlah {
-		return nil, errors.New("insufficient stock")
+		jumlah = baju.Stok
 	}
+	
 	baju.Stok -= jumlah
+
 	if err := r.DB.WithContext(ctx).Save(&baju).Error; err != nil {
 		return nil, err
 	}
