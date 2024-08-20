@@ -2,7 +2,7 @@
 package models
 
 // CreateBajuRequest digunakan untuk membuat Baju baru
-type CreateBajuRequest struct {
+type BajuRequest struct {
 	Warna  string  `json:"warna"`
 	Ukuran string  `json:"ukuran"`
 	Harga  float64 `json:"harga"`

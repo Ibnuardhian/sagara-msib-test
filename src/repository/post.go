@@ -23,14 +23,14 @@ func (r *PostRepositoryImpl) Create(ctx context.Context, baju *models.Baju) (*mo
 	return baju, nil
 }
 
-func (r *PostRepositoryImpl) FindAll(ctx context.Context, stok int) ([]*models.Baju, error) {
+func (r *PostRepositoryImpl) FindAll(ctx context.Context) ([]*models.Baju, error) {
 	var bajus []*models.Baju
-	if err := r.DB.WithContext(ctx).Where("stok > ?", stok).Find(&bajus).Error; err != nil {
+	// Set value directly in the query
+	if err := r.DB.WithContext(ctx).Where("stok < ?", 5).Find(&bajus).Error; err != nil {
 		return nil, err
 	}
 	return bajus, nil
 }
-
 
 func (r *PostRepositoryImpl) FindByWarna(ctx context.Context, warna string) (*models.Baju, error) {
 	var baju models.Baju
@@ -48,7 +48,29 @@ func (r *PostRepositoryImpl) FindByUkuran(ctx context.Context, ukuran string) (*
 	return &baju, nil
 }
 
-func (r *PostRepositoryImpl) TambahStok(ctx context.Context, id uint, jumlah int) (*models.Baju, error) {
+// FindLowStock menampilkan baju dengan stok kurang dari 5
+func (r *PostRepositoryImpl) FindLowStock(ctx context.Context) ([]*models.Baju, error) {
+	var bajus []*models.Baju
+	if err := r.DB.WithContext(ctx).Where("stok < ?", 5).Find(&bajus).Error; err != nil {
+		return nil, err
+	}
+	return bajus, nil
+}
+
+// Update memperbarui Baju yang ada
+func (r *PostRepositoryImpl) Update(ctx context.Context, baju *models.Baju) (*models.Baju, error) {
+	var existingBaju models.Baju
+	if err := r.DB.WithContext(ctx).First(&existingBaju, baju.Id).Error; err != nil {
+		return nil, err
+	}
+
+	if err := r.DB.WithContext(ctx).Model(&existingBaju).Updates(baju).Error; err != nil {
+		return nil, err
+	}
+	return &existingBaju, nil
+}
+
+func (r *PostRepositoryImpl) TambahStock(ctx context.Context, id uint, jumlah int) (*models.Baju, error) {
 	var baju models.Baju
 	if err := r.DB.WithContext(ctx).First(&baju, id).Error; err != nil {
 		return nil, err
@@ -60,7 +82,7 @@ func (r *PostRepositoryImpl) TambahStok(ctx context.Context, id uint, jumlah int
 	return &baju, nil
 }
 
-func (r *PostRepositoryImpl) KurangStok(ctx context.Context, id uint, jumlah int) (*models.Baju, error) {
+func (r *PostRepositoryImpl) KurangStock(ctx context.Context, id uint, jumlah int) (*models.Baju, error) {
 	var baju models.Baju
 	if err := r.DB.WithContext(ctx).First(&baju, id).Error; err != nil {
 		return nil, err
@@ -73,4 +95,12 @@ func (r *PostRepositoryImpl) KurangStok(ctx context.Context, id uint, jumlah int
 		return nil, err
 	}
 	return &baju, nil
+}
+
+// Delete menghapus baju berdasarkan id
+func (r *PostRepositoryImpl) Delete(ctx context.Context, id uint) error {
+	if err := r.DB.WithContext(ctx).Delete(&models.Baju{}, id).Error; err != nil {
+		return err
+	}
+	return nil
 }

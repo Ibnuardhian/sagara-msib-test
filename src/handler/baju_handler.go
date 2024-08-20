@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+	"strings"
 	"test_sagara/src/models"
 
 	"github.com/gin-gonic/gin"
@@ -11,15 +12,16 @@ import (
 
 func CreateBaju(repo models.PostRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req models.CreateBajuRequest
+		var req models.BajuRequest
 		if err := c.BindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
+		// Convert string fields to lower case
 		baju := &models.Baju{
-			Warna:  req.Warna,
-			Ukuran: req.Ukuran,
+			Warna:  strings.ToLower(req.Warna),
+			Ukuran: strings.ToLower(req.Ukuran),
 			Harga:  req.Harga,
 			Stok:   req.Stok,
 		}
@@ -42,14 +44,8 @@ func CreateBaju(repo models.PostRepository) gin.HandlerFunc {
 
 func FindAllBaju(repo models.PostRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		stok := c.Query("stok") // Assuming you pass stok as a query parameter
-		stokValue, err := strconv.Atoi(stok)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid stok parameter"})
-			return
-		}
 
-		bajus, err := repo.FindAll(context.Background(), stokValue)
+		bajus, err := repo.FindAll(context.Background())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -75,6 +71,7 @@ func FindAllBaju(repo models.PostRepository) gin.HandlerFunc {
 func FindByWarna(repo models.PostRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		warna := c.Param("warna")
+		warna = strings.ToLower(warna)
 
 		baju, err := repo.FindByWarna(context.Background(), warna)
 		if err != nil {
@@ -95,6 +92,7 @@ func FindByWarna(repo models.PostRepository) gin.HandlerFunc {
 func FindByUkuran(repo models.PostRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ukuran := c.Param("ukuran")
+		ukuran = strings.ToLower(ukuran)
 
 		baju, err := repo.FindByUkuran(context.Background(), ukuran)
 		if err != nil {
@@ -112,24 +110,89 @@ func FindByUkuran(repo models.PostRepository) gin.HandlerFunc {
 	}
 }
 
+// UpdateBaju memperbarui data baju
+func UpdateBaju(repo models.PostRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		idStr := c.Param("id")
+		id, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+			return
+		}
+
+		var req models.BajuRequest
+		if err := c.BindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		baju := &models.Baju{
+			Id:     uint(id),
+			Warna:  req.Warna,
+			Ukuran: req.Ukuran,
+			Harga:  req.Harga,
+			Stok:   req.Stok,
+		}
+
+		updatedBaju, err := repo.Update(context.Background(), baju)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, models.BajuResponse{
+			Id:     updatedBaju.Id,
+			Warna:  updatedBaju.Warna,
+			Ukuran: updatedBaju.Ukuran,
+			Harga:  updatedBaju.Harga,
+			Stok:   updatedBaju.Stok,
+		})
+	}
+}
+
+// FindLowStock menampilkan baju dengan stok kurang dari 5
+func FindLowStock(repo models.PostRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		bajus, err := repo.FindLowStock(context.Background())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		var response []*models.BajuResponse
+		for _, baju := range bajus {
+			response = append(response, &models.BajuResponse{
+				Id:     baju.Id,
+				Warna:  baju.Warna,
+				Ukuran: baju.Ukuran,
+				Harga:  baju.Harga,
+				Stok:   baju.Stok,
+			})
+		}
+
+		c.JSON(http.StatusOK, models.FindAllBajuResponse{
+			Bajus: response,
+		})
+	}
+}
+
+// TambahStok adds stock to an existing Baju
 func TambahStok(repo models.PostRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
-		jumlahStr := c.Param("jumlah")
-
 		id, err := strconv.ParseUint(idStr, 10, 32)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID parameter"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Id parameter"})
 			return
 		}
 
-		jumlah, err := strconv.Atoi(jumlahStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid jumlah parameter"})
+		var req models.TambahStokReq
+		if err := c.BindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		baju, err := repo.TambahStok(context.Background(), uint(id), jumlah)
+		baju, err := repo.TambahStock(context.Background(), uint(id), req.Jumlah)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -145,24 +208,23 @@ func TambahStok(repo models.PostRepository) gin.HandlerFunc {
 	}
 }
 
+// KurangStok reduces stock from an existing Baju
 func KurangStok(repo models.PostRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		idStr := c.Param("id")
-		jumlahStr := c.Param("jumlah")
-
 		id, err := strconv.ParseUint(idStr, 10, 32)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID parameter"})
 			return
 		}
 
-		jumlah, err := strconv.Atoi(jumlahStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid jumlah parameter"})
+		var req models.KurangStokReq
+		if err := c.BindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		baju, err := repo.KurangStok(context.Background(), uint(id), jumlah)
+		baju, err := repo.KurangStock(context.Background(), uint(id), req.Jumlah)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -175,5 +237,24 @@ func KurangStok(repo models.PostRepository) gin.HandlerFunc {
 			Harga:  baju.Harga,
 			Stok:   baju.Stok,
 		})
+	}
+}
+
+// DeleteBaju menghapus baju berdasarkan id
+func DeleteBaju(repo models.PostRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		idStr := c.Param("id")
+		id, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+			return
+		}
+
+		if err := repo.Delete(context.Background(), uint(id)); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Baju deleted successfully"})
 	}
 }
