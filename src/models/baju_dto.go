@@ -20,7 +20,7 @@ type BajuResponse struct {
 
 // FindAllBajuResponse digunakan untuk mengembalikan daftar Baju
 type FindAllBajuResponse struct {
-	Bajus []*BajuResponse `json:"bajus"`
+	List_baju []*BajuResponse `json:"list_baju"`
 }
 
 // TambahStokReq digunakan untuk menambah stok

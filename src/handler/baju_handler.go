@@ -45,14 +45,14 @@ func CreateBaju(repo models.PostRepository) gin.HandlerFunc {
 func FindAllBaju(repo models.PostRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		bajus, err := repo.FindAll(context.Background())
+		list_baju, err := repo.FindAll(context.Background())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		var response []*models.BajuResponse
-		for _, baju := range bajus {
+		for _, baju := range list_baju {
 			response = append(response, &models.BajuResponse{
 				Id:     baju.Id,
 				Warna:  baju.Warna,
@@ -63,50 +63,72 @@ func FindAllBaju(repo models.PostRepository) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, models.FindAllBajuResponse{
-			Bajus: response,
+			List_baju: response,
 		})
 	}
 }
 
+// FindByWarna mencari baju berdasarkan warna dan mengembalikan daftar baju
 func FindByWarna(repo models.PostRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		warna := c.Param("warna")
 		warna = strings.ToLower(warna)
 
-		baju, err := repo.FindByWarna(context.Background(), warna)
+		list_baju, err := repo.FindByWarna(context.Background(), warna)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		c.JSON(http.StatusOK, models.BajuResponse{
-			Id:     baju.Id,
-			Warna:  baju.Warna,
-			Ukuran: baju.Ukuran,
-			Harga:  baju.Harga,
-			Stok:   baju.Stok,
-		})
+		if len(list_baju) == 0 {
+			c.JSON(http.StatusNotFound, gin.H{"message": "No baju found with the specified color"})
+			return
+		}
+
+		var response []*models.BajuResponse
+		for _, baju := range list_baju {
+			response = append(response, &models.BajuResponse{
+				Id:     baju.Id,
+				Warna:  baju.Warna,
+				Ukuran: baju.Ukuran,
+				Harga:  baju.Harga,
+				Stok:   baju.Stok,
+			})
+		}
+
+		c.JSON(http.StatusOK, response)
 	}
 }
 
+// FindByUkuran mencari baju berdasarkan ukuran dan mengembalikan daftar baju
 func FindByUkuran(repo models.PostRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ukuran := c.Param("ukuran")
 		ukuran = strings.ToLower(ukuran)
 
-		baju, err := repo.FindByUkuran(context.Background(), ukuran)
+		list_baju, err := repo.FindByUkuran(context.Background(), ukuran)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		c.JSON(http.StatusOK, models.BajuResponse{
-			Id:     baju.Id,
-			Warna:  baju.Warna,
-			Ukuran: baju.Ukuran,
-			Harga:  baju.Harga,
-			Stok:   baju.Stok,
-		})
+		if len(list_baju) == 0 {
+			c.JSON(http.StatusNotFound, gin.H{"message": "No baju found with the specified size"})
+			return
+		}
+
+		var response []*models.BajuResponse
+		for _, baju := range list_baju {
+			response = append(response, &models.BajuResponse{
+				Id:     baju.Id,
+				Warna:  baju.Warna,
+				Ukuran: baju.Ukuran,
+				Harga:  baju.Harga,
+				Stok:   baju.Stok,
+			})
+		}
+
+		c.JSON(http.StatusOK, response)
 	}
 }
 
@@ -153,14 +175,14 @@ func UpdateBaju(repo models.PostRepository) gin.HandlerFunc {
 // FindLowStock menampilkan baju dengan stok kurang dari 5
 func FindLowStock(repo models.PostRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		bajus, err := repo.FindLowStock(context.Background())
+		list_baju, err := repo.FindLowStock(context.Background())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		var response []*models.BajuResponse
-		for _, baju := range bajus {
+		for _, baju := range list_baju {
 			response = append(response, &models.BajuResponse{
 				Id:     baju.Id,
 				Warna:  baju.Warna,
@@ -171,7 +193,7 @@ func FindLowStock(repo models.PostRepository) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, models.FindAllBajuResponse{
-			Bajus: response,
+			List_baju: response,
 		})
 	}
 }
@@ -243,14 +265,14 @@ func KurangStok(repo models.PostRepository) gin.HandlerFunc {
 // FindOutOfStock menampilkan baju dengan stok 0
 func FindOutOfStock(repo models.PostRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		bajus, err := repo.FindOutOfStock(context.Background())
+		list_baju, err := repo.FindOutOfStock(context.Background())
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		var response []*models.BajuResponse
-		for _, baju := range bajus {
+		for _, baju := range list_baju {
 			response = append(response, &models.BajuResponse{
 				Id:     baju.Id,
 				Warna:  baju.Warna,
@@ -261,7 +283,7 @@ func FindOutOfStock(repo models.PostRepository) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, models.FindAllBajuResponse{
-			Bajus: response,
+			List_baju: response,
 		})
 	}
 }

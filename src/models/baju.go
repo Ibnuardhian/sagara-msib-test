@@ -11,16 +11,16 @@ type Baju struct {
 }
 
 type BajuListResponse struct {
-	Bajus []Baju `json:"bajus"`
+	List_baju []Baju `json:"list_baju"`
 }
 
 type PostRepository interface {
 	Create(ctx context.Context, baju *Baju) (*Baju, error)
 	FindAll(ctx context.Context) ([]*Baju, error)
-	FindByWarna(ctx context.Context, warna string) (*Baju, error)
-	FindByUkuran(ctx context.Context, ukuran string) (*Baju, error)
+	FindByWarna(ctx context.Context, warna string) ([]*Baju, error)
+	FindByUkuran(ctx context.Context, ukuran string) ([]*Baju, error)
 	FindLowStock(ctx context.Context) ([]*Baju, error)
-	Update(ctx context.Context, baju *Baju)(*Baju, error)
+	Update(ctx context.Context, baju *Baju) (*Baju, error)
 	TambahStock(ctx context.Context, id uint, jumlah int) (*Baju, error)
 	KurangStock(ctx context.Context, id uint, jumlah int) (*Baju, error)
 	FindOutOfStock(ctx context.Context) ([]*Baju, error)

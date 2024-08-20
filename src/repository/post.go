@@ -24,37 +24,37 @@ func (r *PostRepositoryImpl) Create(ctx context.Context, baju *models.Baju) (*mo
 }
 
 func (r *PostRepositoryImpl) FindAll(ctx context.Context) ([]*models.Baju, error) {
-	var bajus []*models.Baju
+	var list_baju []*models.Baju
 	// Set value directly in the query
-	if err := r.DB.WithContext(ctx).Where("stok < ?", 5).Find(&bajus).Error; err != nil {
+	if err := r.DB.WithContext(ctx).Find(&list_baju).Error; err != nil {
 		return nil, err
 	}
-	return bajus, nil
+	return list_baju, nil
 }
 
-func (r *PostRepositoryImpl) FindByWarna(ctx context.Context, warna string) (*models.Baju, error) {
-	var baju models.Baju
-	if err := r.DB.WithContext(ctx).Where("warna = ?", warna).First(&baju).Error; err != nil {
+func (r *PostRepositoryImpl) FindByWarna(ctx context.Context, warna string) ([]*models.Baju, error) {
+	var list_baju []*models.Baju
+	if err := r.DB.WithContext(ctx).Where("warna = ?", warna).Find(&list_baju).Error; err != nil {
 		return nil, err
 	}
-	return &baju, nil
+	return list_baju, nil
 }
 
-func (r *PostRepositoryImpl) FindByUkuran(ctx context.Context, ukuran string) (*models.Baju, error) {
-	var baju models.Baju
-	if err := r.DB.WithContext(ctx).Where("ukuran = ?", ukuran).First(&baju).Error; err != nil {
+func (r *PostRepositoryImpl) FindByUkuran(ctx context.Context, ukuran string) ([]*models.Baju, error) {
+	var list_baju []*models.Baju
+	if err := r.DB.WithContext(ctx).Where("ukuran = ?", ukuran).Find(&list_baju).Error; err != nil {
 		return nil, err
 	}
-	return &baju, nil
+	return list_baju, nil
 }
 
 // FindLowStock menampilkan baju dengan stok kurang dari 5
 func (r *PostRepositoryImpl) FindLowStock(ctx context.Context) ([]*models.Baju, error) {
-	var bajus []*models.Baju
-	if err := r.DB.WithContext(ctx).Where("stok < ?", 5).Find(&bajus).Error; err != nil {
+	var list_baju []*models.Baju
+	if err := r.DB.WithContext(ctx).Where("stok < ?", 5).Find(&list_baju).Error; err != nil {
 		return nil, err
 	}
-	return bajus, nil
+	return list_baju, nil
 }
 
 // Update memperbarui Baju yang ada
@@ -97,14 +97,13 @@ func (r *PostRepositoryImpl) KurangStock(ctx context.Context, id uint, jumlah in
 	return &baju, nil
 }
 
-
 // FindOutOfStock mencari semua baju dengan stok 0
 func (r *PostRepositoryImpl) FindOutOfStock(ctx context.Context) ([]*models.Baju, error) {
-	var bajus []*models.Baju
-	if err := r.DB.WithContext(ctx).Where("stok = 0").Find(&bajus).Error; err != nil {
+	var list_baju []*models.Baju
+	if err := r.DB.WithContext(ctx).Where("stok = 0").Find(&list_baju).Error; err != nil {
 		return nil, err
 	}
-	return bajus, nil
+	return list_baju, nil
 }
 
 // Delete menghapus baju berdasarkan id
