@@ -9,6 +9,7 @@ import (
 )
 
 func main() {
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	db := config.InitGorm()
 	repo := repository.NewPostRepository(db)
@@ -17,7 +18,11 @@ func main() {
 	r.GET("/api", handler.FindAllBaju(repo))
 	r.GET("/api/warna/:warna", handler.FindByWarna(repo))
 	r.GET("/api/ukuran/:ukuran", handler.FindByUkuran(repo))
-	r.PUT("/bajus/tambah-stok/:id/:jumlah", handler.TambahStok(repo))
-	r.PUT("/bajus/kurang-stok/:id/:jumlah", handler.KurangStok(repo))
+	r.GET("/api/baju/lowstock", handler.FindLowStock(repo))
+	r.GET("/api/baju/outstock", handler.FindOutOfStock(repo))
+	r.PUT("/api/baju/:id", handler.UpdateBaju(repo))
+	r.PUT("/api/baju/tambah/:id", handler.TambahStok(repo))
+	r.PUT("/api/baju/kurang/:id", handler.KurangStok(repo))
+	r.DELETE("/api/delete/:id", handler.DeleteBaju(repo))
 	r.Run(":3000")
 }
