@@ -23,5 +23,6 @@ type PostRepository interface {
 	Update(ctx context.Context, baju *Baju)(*Baju, error)
 	TambahStock(ctx context.Context, id uint, jumlah int) (*Baju, error)
 	KurangStock(ctx context.Context, id uint, jumlah int) (*Baju, error)
+	FindOutOfStock(ctx context.Context) ([]*Baju, error)
 	Delete(ctx context.Context, id uint) error
 }

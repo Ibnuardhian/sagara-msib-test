@@ -240,6 +240,32 @@ func KurangStok(repo models.PostRepository) gin.HandlerFunc {
 	}
 }
 
+// FindOutOfStock menampilkan baju dengan stok 0
+func FindOutOfStock(repo models.PostRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		bajus, err := repo.FindOutOfStock(context.Background())
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		var response []*models.BajuResponse
+		for _, baju := range bajus {
+			response = append(response, &models.BajuResponse{
+				Id:     baju.Id,
+				Warna:  baju.Warna,
+				Ukuran: baju.Ukuran,
+				Harga:  baju.Harga,
+				Stok:   baju.Stok,
+			})
+		}
+
+		c.JSON(http.StatusOK, models.FindAllBajuResponse{
+			Bajus: response,
+		})
+	}
+}
+
 // DeleteBaju menghapus baju berdasarkan id
 func DeleteBaju(repo models.PostRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {

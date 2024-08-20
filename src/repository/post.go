@@ -97,6 +97,16 @@ func (r *PostRepositoryImpl) KurangStock(ctx context.Context, id uint, jumlah in
 	return &baju, nil
 }
 
+
+// FindOutOfStock mencari semua baju dengan stok 0
+func (r *PostRepositoryImpl) FindOutOfStock(ctx context.Context) ([]*models.Baju, error) {
+	var bajus []*models.Baju
+	if err := r.DB.WithContext(ctx).Where("stok = 0").Find(&bajus).Error; err != nil {
+		return nil, err
+	}
+	return bajus, nil
+}
+
 // Delete menghapus baju berdasarkan id
 func (r *PostRepositoryImpl) Delete(ctx context.Context, id uint) error {
 	if err := r.DB.WithContext(ctx).Delete(&models.Baju{}, id).Error; err != nil {
